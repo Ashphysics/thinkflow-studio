@@ -8,7 +8,6 @@ from loguru import logger
 
 from app.core.base_agent import BaseAgent
 from app.core.exceptions import AgentExecutionError
-from app.orchestrator.pipeline import AgentPipeline
 
 class CoordinatorAgent(BaseAgent):
     """
@@ -30,6 +29,7 @@ class CoordinatorAgent(BaseAgent):
         logger.info(f"[CoordinatorAgent] Dispatching request to orchestration pipeline | Session: {session_id}")
         
         try:
+            from app.orchestrator.pipeline import AgentPipeline
             pipeline = AgentPipeline(session_id=session_id)
             result = await pipeline.run(prompt)
             

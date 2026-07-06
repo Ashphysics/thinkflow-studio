@@ -32,7 +32,7 @@ class Settings(BaseSettings):
     # SecretStr protects the key from accidental console prints or logs
     gemini_api_key: SecretStr | None = Field(
         default=None,
-        validation_alias="GEMINI_API_KEY"
+        validation_alias="GOOGLE_API_KEY"
     )
 
     # App Environment Settings

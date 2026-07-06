@@ -25,6 +25,14 @@ async def test_end_to_end_pipeline_success(
     mock_critic_run,
     mock_analyzer_run
 ):
+    from app.core.dependency_container import container
+    from app.core.session_manager import SessionManager
+    from app.core.model_factory import ModelFactory
+    from unittest.mock import MagicMock
+    
+    container.clear()
+    container.register_singleton(SessionManager, SessionManager())
+    container.register_singleton(ModelFactory, MagicMock(spec=ModelFactory))
     # Mock return values for each agent in the chain
     mock_analyzer_run.return_value = IdeaAnalysisOutput(
         idea_title="Test", one_sentence_summary="Test", category="Test", 

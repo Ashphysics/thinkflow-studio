@@ -30,7 +30,7 @@ class ModelFactory:
         if client_key not in self._clients:
             api_key = self._settings.gemini_api_key.get_secret_value() if self._settings.gemini_api_key else None
             if not api_key:
-                raise ModelInitializationError("GEMINI_API_KEY is not set.")
+                raise ModelInitializationError("GOOGLE_API_KEY is not set.")
             try:
                 # Initialize GenAI Client
                 self._clients[client_key] = genai.Client(api_key=api_key)

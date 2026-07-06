@@ -16,7 +16,7 @@ from mcp.client.session import ClientSession
 
 from app.core.base_agent import BaseAgent
 from app.core.exceptions import AgentExecutionError
-from app.schemas.framework_selection import FrameworkSelectionOutput
+from app.schemas.framework_selection import FrameworkSelectionOutput, LLMFrameworkSelection
 from app.agents.agent_registry import agent_registry
 
 
@@ -54,9 +54,6 @@ class FrameworkSelectorAgent(BaseAgent):
                     await session.initialize()
                     
                     # Provide minimal generic payload based on typical tool requirements
-                    # Tools like swot_analysis expect 'topic'
-                    # Tools like five_whys expect 'problem_statement'
-                    # Tools like first_principles expect 'complex_problem'
                     tool_args = {
                         "topic": idea_title,
                         "problem_statement": idea_title,
@@ -68,27 +65,35 @@ class FrameworkSelectorAgent(BaseAgent):
                         "tasks": ["Task 1", "Task 2"]
                     }
                     
-                    result = await session.call_tool(tool_name, arguments=tool_args)
+                    result = await session.call_tool(tool_name, arguments={"input_data": tool_args})
                     
-                    if result.isError:
-                        raise AgentExecutionError(f"MCP Tool {tool_name} returned an error: {result.content}")
-                    
-                    # Ensure content is extracted cleanly; typically JSON string inside text block
-                    if not result.content:
-                        raise AgentExecutionError(f"MCP Tool {tool_name} returned empty content.")
-                        
-                    content_str = result.content[0].text
-                    
-                    try:
-                        # Depending on the MCP SDK output format, it might be a JSON string or dict string repr
-                        import ast
-                        template_dict = ast.literal_eval(content_str) if content_str.startswith("{") else json.loads(content_str)
-                        return template_dict
-                    except Exception as e:
-                        # Fallback parsing
-                        return {"raw_template": content_str}
+            # Outside the context manager to avoid crashing the anyio.TaskGroup violently
+            if result.isError:
+                raise AgentExecutionError(f"MCP Tool {tool_name} returned an error: {result.content}")
+            
+            if not result.content:
+                raise AgentExecutionError(f"MCP Tool {tool_name} returned empty content.")
+                
+            content_str = result.content[0].text
+            
+            try:
+                import ast
+                template_dict = ast.literal_eval(content_str) if content_str.startswith("{") else json.loads(content_str)
+                return template_dict
+            except Exception as e:
+                return {"raw_template": content_str}
+                
+        except AgentExecutionError:
+            raise
         except Exception as e:
-            logger.error(f"[{self.__class__.__name__}] MCP connection or execution failed: {e}")
+            import traceback
+            error_details = traceback.format_exc()
+            logger.error(f"[{self.__class__.__name__}] MCP connection or execution failed: {e}\nTraceback: {error_details}")
+            
+            if hasattr(e, 'exceptions'):
+                for idx, sub_e in enumerate(e.exceptions):
+                    logger.error(f"  Sub-exception {idx}: {sub_e}")
+                    
             raise AgentExecutionError(f"Failed to fetch MCP template: {e}")
 
     async def _execute(self, prompt: str, context: Any = None) -> FrameworkSelectionOutput:
@@ -128,22 +133,28 @@ class FrameworkSelectorAgent(BaseAgent):
                 config=types.GenerateContentConfig(
                     system_instruction=self.system_prompt,
                     response_mime_type="application/json",
-                    response_schema=FrameworkSelectionOutput,
+                    response_schema=LLMFrameworkSelection,
                     temperature=0.0
                 )
             )
 
             selection_data = response.text
-            result = FrameworkSelectionOutput.model_validate_json(selection_data)
+            llm_result = LLMFrameworkSelection.model_validate_json(selection_data)
             
-            logger.info(f"[{self.__class__.__name__}] Selected framework: {result.selected_framework}")
+            logger.info(f"[{self.__class__.__name__}] Selected framework: {llm_result.selected_framework}")
             
             # Step 2: Fetch MCP Template
             # We extract title safely; assuming idea_analysis is a dict
             idea_title = idea_analysis.get("idea_title", "Unknown Topic") if isinstance(idea_analysis, dict) else "Unknown Topic"
             
-            template = await self._fetch_mcp_template(result.selected_framework, idea_title)
-            result.framework_template = template
+            template = await self._fetch_mcp_template(llm_result.selected_framework, idea_title)
+            
+            result = FrameworkSelectionOutput(
+                selected_framework=llm_result.selected_framework,
+                selection_reason=llm_result.selection_reason,
+                confidence_score=llm_result.confidence_score,
+                framework_template=template
+            )
             
             execution_time = time.time() - start_time
             logger.info(f"[{self.__class__.__name__}] Selection complete | Status: SUCCESS | Time: {execution_time:.2f}s")

@@ -1,5 +1,8 @@
 # Memory Architecture
 
+**Version:** 1.0.0  
+**Last Updated:** 2026-07-06  
+
 ThinkFlow uses an offline-first SQLite database architecture providing both short-term session continuity and long-term knowledge extraction.
 
 ```mermaid

@@ -12,6 +12,29 @@ class ExecutionPhase(BaseModel):
     phase_name: str = Field(description="Name of the execution phase.")
     description: str = Field(description="Summary of what this phase accomplishes.")
 
+class LLMExecutionPlanOutput(BaseModel):
+    """
+    Schema provided to the LLM to generate the execution plan.
+    Excludes the dict field to avoid additionalProperties API errors.
+    """
+    project_title: str = Field(description="Title of the project.")
+    project_summary: str = Field(description="Brief summary of the project goals.")
+    recommended_strategy: str = Field(description="Overall recommended strategy for execution.")
+    execution_phases: List[ExecutionPhase] = Field(description="The chronological sequence of execution phases.")
+    milestones: List[str] = Field(description="Key deliverables or milestones for the project.")
+    tasks: List[str] = Field(description="High level tasks.")
+    priority_order: List[str] = Field(description="The order in which phases/tasks should be prioritized.")
+    estimated_duration: str = Field(description="High-level estimated timeline (e.g., '3 months').")
+    estimated_difficulty: str = Field(description="Difficulty estimation.")
+    required_resources: List[str] = Field(description="Resources or personnel required.")
+    potential_risks: List[str] = Field(description="Key risks mitigating the weaknesses identified by the Critic.")
+    success_metrics: List[str] = Field(description="Measurable KPIs to determine project success.")
+    next_best_action: str = Field(description="The immediate next actionable step for the user.")
+    confidence_score: float = Field(ge=0.0, le=1.0, description="Confidence in the plan based on the inputs.")
+    filled_framework_json: str = Field(
+        description="The MCP framework template fully populated with the project details, serialized as a JSON string."
+    )
+
 class ExecutionPlanOutput(BaseModel):
     """
     Structured output returned by the Planner Agent.

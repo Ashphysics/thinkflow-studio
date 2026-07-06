@@ -24,4 +24,4 @@ COPY . /app/
 EXPOSE 8501
 
 # Run the Streamlit app. Streamlit will launch the MCP subprocess as needed.
-CMD ["streamlit", "run", "app/ui/app.py", "--server.port=8501", "--server.address=0.0.0.0"]
+CMD ["streamlit", "run", "app/ui/main.py", "--server.port=8501", "--server.address=0.0.0.0"]

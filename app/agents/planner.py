@@ -12,7 +12,7 @@ from google.genai import types
 
 from app.core.base_agent import BaseAgent
 from app.core.exceptions import AgentExecutionError
-from app.schemas.execution_plan import ExecutionPlanOutput
+from app.schemas.execution_plan import ExecutionPlanOutput, LLMExecutionPlanOutput
 from app.agents.agent_registry import agent_registry
 
 
@@ -84,13 +84,40 @@ class PlannerAgent(BaseAgent):
                 config=types.GenerateContentConfig(
                     system_instruction=self.system_prompt,
                     response_mime_type="application/json",
-                    response_schema=ExecutionPlanOutput,
+                    response_schema=LLMExecutionPlanOutput,
                     temperature=0.1
                 )
             )
 
             plan_data = response.text
-            result = ExecutionPlanOutput.model_validate_json(plan_data)
+            llm_result = LLMExecutionPlanOutput.model_validate_json(plan_data)
+            
+            # Parse the stringified JSON framework
+            filled_dict = {}
+            if llm_result.filled_framework_json:
+                try:
+                    filled_dict = json.loads(llm_result.filled_framework_json)
+                except Exception as e:
+                    logger.warning(f"[{self.__class__.__name__}] Failed to parse filled_framework_json: {e}")
+                    filled_dict = {"raw": llm_result.filled_framework_json}
+
+            result = ExecutionPlanOutput(
+                project_title=llm_result.project_title,
+                project_summary=llm_result.project_summary,
+                recommended_strategy=llm_result.recommended_strategy,
+                execution_phases=llm_result.execution_phases,
+                milestones=llm_result.milestones,
+                tasks=llm_result.tasks,
+                priority_order=llm_result.priority_order,
+                estimated_duration=llm_result.estimated_duration,
+                estimated_difficulty=llm_result.estimated_difficulty,
+                required_resources=llm_result.required_resources,
+                potential_risks=llm_result.potential_risks,
+                success_metrics=llm_result.success_metrics,
+                next_best_action=llm_result.next_best_action,
+                confidence_score=llm_result.confidence_score,
+                filled_framework=filled_dict
+            )
             
             execution_time = time.time() - start_time
             logger.info(

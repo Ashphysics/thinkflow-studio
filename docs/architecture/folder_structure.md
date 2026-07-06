@@ -1,6 +1,9 @@
 # Folder Structure
 
-```
+**Version:** 1.0.0  
+**Last Updated:** 2026-07-06  
+
+```text
 thinkflow-studio/
 ├── app/
 │   ├── agents/          # Specialist agents (Planner, Critic, etc.)

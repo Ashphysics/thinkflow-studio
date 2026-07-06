@@ -1,5 +1,9 @@
 import streamlit as st
 import os
+import sys
+
+# Ensure the root directory is in sys.path so 'app' can be imported
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..')))
 
 st.set_page_config(page_title="ThinkFlow Architecture", page_icon="🏗️", layout="wide")
 

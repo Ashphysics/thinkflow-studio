@@ -5,7 +5,8 @@ Integration tests for the MCP Server initialization and routing.
 import pytest
 from app.mcp.server import create_mcp_server
 
-def test_mcp_server_initialization():
+@pytest.mark.asyncio
+async def test_mcp_server_initialization():
     """Verify that the MCP server initializes and registers tools correctly."""
     mcp = create_mcp_server()
     
@@ -13,7 +14,7 @@ def test_mcp_server_initialization():
     
     # FastMCP stores tools in _tool_manager.
     # The tools should include our 7 framework tools + health_check
-    tools = mcp.list_tools()
+    tools = await mcp.list_tools()
     
     tool_names = [tool.name for tool in tools]
     

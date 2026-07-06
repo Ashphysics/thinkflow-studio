@@ -33,7 +33,8 @@ async def test_pipeline_failure_halts_execution(mock_registry, clean_dispatcher)
     mock_agent_instance = AsyncMock()
     mock_agent_instance.run.side_effect = AgentExecutionError("Analyzer failed")
     
-    mock_agent_class = AsyncMock(return_value=mock_agent_instance)
+    from unittest.mock import MagicMock
+    mock_agent_class = MagicMock(return_value=mock_agent_instance)
     mock_registry.get_agent.return_value = mock_agent_class
     
     pipeline = AgentPipeline(session_id="s1")

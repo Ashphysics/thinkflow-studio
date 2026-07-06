@@ -14,12 +14,20 @@ TEST_DB_PATH = "test_memory.db"
 
 @pytest.fixture
 def clean_db():
-    if os.path.exists(TEST_DB_PATH):
-        os.remove(TEST_DB_PATH)
+    try:
+        if os.path.exists(TEST_DB_PATH):
+            os.remove(TEST_DB_PATH)
+    except PermissionError:
+        pass
+        
     service = MemoryService(TEST_DB_PATH)
     yield service
-    if os.path.exists(TEST_DB_PATH):
-        os.remove(TEST_DB_PATH)
+    
+    try:
+        if os.path.exists(TEST_DB_PATH):
+            os.remove(TEST_DB_PATH)
+    except PermissionError:
+        pass
 
 def test_session_lifecycle(clean_db):
     service = clean_db

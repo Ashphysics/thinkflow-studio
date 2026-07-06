@@ -9,16 +9,13 @@ TODOs:
     - [ ] Dynamic settings reload without restarting the main service.
 """
 
-from app.config.constants import DEFAULT_MAX_LOOPS, DEFAULT_TIMEOUT
-from app.config.logging_config import configure_logging
+from app.config.logging_config import setup_logging
 from app.config.settings import Settings, get_settings
 
 # Instantiate global settings singleton
 settings: Settings = get_settings()
 
 __all__: list[str] = [
-    "DEFAULT_MAX_LOOPS",
-    "DEFAULT_TIMEOUT",
-    "configure_logging",
+    "setup_logging",
     "settings",
 ]
