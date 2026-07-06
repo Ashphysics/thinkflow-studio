@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  thinkflow:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: thinkflow-studio
+    ports:
+      - "8501:8501"
+    volumes:
+      - .:/app
+    environment:
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - ENVIRONMENT=${ENVIRONMENT:-development}
+    restart: unless-stopped

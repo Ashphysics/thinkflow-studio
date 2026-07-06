@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "thinkflow-studio"
+version = "1.0.0"
+description = "A Multi-Agent Structured Thinking Environment"
+authors = [
+    {name = "Google AI Engineering"}
+]
+requires-python = ">=3.12"
+dependencies = [
+    "pydantic",
+    "loguru",
+    "google-genai",
+    "mcp",
+    "streamlit"
+]
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+
+[tool.mypy]
+python_version = "3.12"
+ignore_missing_imports = true
+strict = false
